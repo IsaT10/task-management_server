@@ -20,11 +20,43 @@ const client = new MongoClient(uri, {
   },
 });
 
+const usersCollection = client.db('taskManagementDB').collection('users');
+const todosCollection = client.db('taskManagementDB').collection('todos');
+
 async function run() {
   try {
     console.log(
       'Pinged your deployment. You successfully connected to MongoDB!'
     );
+
+    app.post('/users', async (req, res) => {
+      try {
+        const data = req.body;
+        const query = { email: data.email };
+
+        const isExist = await usersCollection.findOne(query);
+        // console.log(isExist);
+
+        if (isExist) {
+          return res.send('user already exist');
+        } else {
+          const result = await usersCollection.insertOne(data);
+          return res.send(result);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    app.post('/todos', async (req, res) => {
+      try {
+        const data = req.body;
+        const result = await todosCollection.insertOne(data);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
   } finally {
     // await client.close();
   }
