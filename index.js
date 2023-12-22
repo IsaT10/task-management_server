@@ -48,10 +48,74 @@ async function run() {
       }
     });
 
+    app.get('/todos', async (req, res) => {
+      try {
+        const { email } = req.query;
+        const query = { email };
+        const result = await todosCollection.find(query).toArray();
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
     app.post('/todos', async (req, res) => {
       try {
         const data = req.body;
         const result = await todosCollection.insertOne(data);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    app.patch('/todos/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const query = { _id: new ObjectId(id) };
+        const { description, priority, deadline, title, taskProgress } =
+          req.body;
+        console.log(description, priority, deadline, title);
+
+        const updatedField = {};
+
+        const fieldToUpdate = [
+          'title',
+          'description',
+          'priority',
+          'deadline',
+          'taskProgress',
+        ];
+
+        fieldToUpdate.forEach((field) => {
+          if (req.body[field] !== undefined) {
+            updatedField[field] = req.body[field];
+          }
+        });
+        const updatedDoc = {
+          $set: updatedField,
+        };
+
+        // const updatedDoc = {
+        //   $set: {
+        //     title,
+        //     deadline,
+        //     description,
+        //     priority,
+        //   },
+        // };
+        const result = await todosCollection.updateOne(query, updatedDoc);
+        res.send(result);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    app.delete('/todos/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const query = { _id: new ObjectId(id) };
+        const result = await todosCollection.deleteOne(query);
         res.send(result);
       } catch (error) {
         console.log(error);
